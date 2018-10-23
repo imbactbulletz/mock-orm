@@ -4,6 +4,7 @@ import orm.annotations.*;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,6 +36,13 @@ public class EntityHelper {
         return false;
     }
 
+    /**
+     * <p>Retrieves a table name for a given class. If a Table annotation is present, then table name will be the same as of the annotation's value.
+     * If Table annotation isn't present, then value of Entity annotation is looked up. If it is empty as well, then the simplified class name is taken
+     * as the name of the table.</p>
+     * @param clazz A class which represents an Entity, whose table name needs to be found.
+     * @return Name of the database table.
+     */
     public String findTableName(Class<?> clazz){
         String tableName = "";
 
@@ -83,8 +91,8 @@ public class EntityHelper {
      * @param object Object that contains field values.
      * @return A map of column names and values.
      */
-    public Map<Object,Object> getColumnNamesAndValuesForClasses(List<Class<?>> classes, Object object){
-        Map map = new HashMap<>();
+    public Map<String,Object> getColumnNamesAndValuesForClasses(List<Class<?>> classes, Object object){
+        Map map = new HashMap<String, Object>();
 
 
         // getting column names and values for each class
@@ -102,6 +110,11 @@ public class EntityHelper {
         return map;
     }
 
+    /**
+     * Retrieves the field which is marked as identifying column (primary key) in a class.
+     * @param clazz Entity class whose identifying field we need to find.
+     * @return A Field that is an identifying column.
+     */
     public Field findIdField(Class clazz){
 
         List<Class<?>> classes = classHelper.getSuperClasses(clazz);
@@ -131,8 +144,8 @@ public class EntityHelper {
      * @param object Instance of a clazz that contains values.
      * @return
      */
-    public Map getColumnNamesAndValues(Class<?> clazz, Object object) {
-        Map map = new HashMap<>();
+    public Map<String, Object> getColumnNamesAndValues(Class<?> clazz, Object object) {
+        Map map = new HashMap<String, Object>();
 
         Field[] clazzFields = clazz.getDeclaredFields();
 
@@ -197,4 +210,70 @@ public class EntityHelper {
 
         return map;
     }
+
+
+    /**
+     * <p>Iterates through a class and all of its superclasses searching for fields that are marked as GeneratedValue.
+     * Once a field marked as GeneratedValue is found, then a lookup is made for Column annotation which contains the column name.</p>
+     * @param clazz Class that needs to be inspected.
+     * @return A list of column names that represent GeneratedValue fields.
+     */
+    public List<String> getGeneratedValuesColumnNames(Class<?> clazz){
+
+        // a list of column names that belong to fields marked as GeneratedValue
+        List<String> generatedValuesColumnNames = new ArrayList<>();
+
+        // putting together superclasses and current class so that we can search for
+        // columnNames in all of the relevant classes
+        List<Class<?>> superClasses = classHelper.getSuperClasses(clazz);
+        List<Class<?>> allClasses = new ArrayList<>();
+
+        allClasses.addAll(superClasses);
+        allClasses.add(clazz);
+
+        for(Class<?> cls : allClasses){
+
+            Field[] clsFields = cls.getDeclaredFields();
+
+            for(Field clsField : clsFields){
+                Annotation[] clsFieldAnnotations = clsField.getDeclaredAnnotations();
+
+                boolean isGeneratedValue = false;
+
+                // checking for generatedValue annotation
+                for(Annotation clsFieldAnnotation : clsFieldAnnotations){
+                    if(clsFieldAnnotation instanceof GeneratedValue){
+                        isGeneratedValue = true;
+                        break;
+                    }
+                }
+
+                // found a GeneratedValue annotation
+                if(isGeneratedValue){
+                    boolean isColumn = false;
+
+                    // searching for Column annotation
+                    for(Annotation clsFieldAnnotation : clsFieldAnnotations){
+                        // found the Column annotation, getting the column name
+                        if(clsFieldAnnotation instanceof Column){
+                            isColumn = true;
+                            Column column = (Column) clsFieldAnnotation;
+
+                            // adding column name to the list of the column names
+                            generatedValuesColumnNames.add(column.name());
+                        }
+                    }
+
+                    // didn't find a column name, field with GeneratedValue wasn't annotated -> big NO NO
+                    if(!isColumn){
+                        System.err.println("Column name for a GeneratedValue could not be found. <<" + clazz.getSimpleName() + ">>");
+                        return null;
+                    }
+                }
+            }
+        }
+
+        return generatedValuesColumnNames;
+    }
+
 }

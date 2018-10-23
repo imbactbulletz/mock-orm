@@ -28,7 +28,6 @@ public class ORM {
      */
     public void persist(Object object) {
 
-        ArrayList<Field> generatedValueFields = new ArrayList<>();
 
         // getting class object that represents object's class
         Class<?> clazz = object.getClass();
@@ -53,16 +52,27 @@ public class ORM {
 
 
         // getting column names and values as a map
-        Map<Object, Object> columnNamesAndValues = entityHelper.getColumnNamesAndValuesForClasses(allClasses, object);
+        Map<String, Object> columnNamesAndValues = entityHelper.getColumnNamesAndValuesForClasses(allClasses, object);
 
         // forming a query out of the map
         String query = queryFormer.formInsertQuery(tableName, columnNamesAndValues);
 
 
+        // getting all GeneratedValue column names so that we can request their value after object's persistance
+        List<String> generatedValuesColumnNames = entityHelper.getGeneratedValuesColumnNames(clazz);
+
+
+        // found column names for generated values
+        if(generatedValuesColumnNames != null && generatedValuesColumnNames.size() != 0){
+            // making a select query and appending it to the insert query
+            query = query + " " + queryFormer.formSelectQuery(tableName, generatedValuesColumnNames, columnNamesAndValues);
+        }
+
+
         System.out.println(query);
     }
 
-    /**(Class<?>)Object) superClass
+    /**
      * Updates a database entity.
      *
      * @param object Entity that needs to be updated.
@@ -92,7 +102,6 @@ public class ORM {
      */
     public void delete(Object object) {
         Class<?> clazz = object.getClass();
-        Annotation[] annotations = clazz.getAnnotations();
 
         if (!entityHelper.isEntity(object)) {
             System.err.println("Object of the class <" + clazz.getSimpleName() + "> cannot be deleted because it isn't an Entity.");
@@ -122,7 +131,6 @@ public class ORM {
         System.out.println(deleteQuery);
 
     }
-
 
 
 
