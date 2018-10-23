@@ -1,6 +1,8 @@
 package orm;
 
 import orm.annotations.*;
+import orm.exceptions.ColumnNotFound;
+import orm.exceptions.NullValue;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
@@ -175,8 +177,12 @@ public class EntityHelper {
 
                         // if the field marked as NotNull contains a null value
                         if (field.get(object) == null) {
-                            System.err.println("A property of an entity (" + field.getName() + ") which is marked as @NotNull contains a null value.");
-                            return null;
+                            try {
+                                throw new NullValue("A property of an entity (" + field.getName() + ") which is marked as @NotNull contains a null value.");
+                            } catch (NullValue nullValue) {
+                                nullValue.printStackTrace();
+                                return null;
+                            }
                         }
                     } catch (IllegalAccessException e) {
                         e.printStackTrace();
@@ -266,8 +272,12 @@ public class EntityHelper {
 
                     // didn't find a column name, field with GeneratedValue wasn't annotated -> big NO NO
                     if(!isColumn){
-                        System.err.println("Column name for a GeneratedValue could not be found. <<" + clazz.getSimpleName() + ">>");
-                        return null;
+                        try {
+                            throw new ColumnNotFound("Column name for a GeneratedValue could not be found. <<" + clazz.getSimpleName() + ">>");
+                        } catch (ColumnNotFound columnNotFound) {
+                            columnNotFound.printStackTrace();
+                            return null;
+                        }
                     }
                 }
             }

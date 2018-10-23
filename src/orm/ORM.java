@@ -1,6 +1,9 @@
 package orm;
 
 
+import orm.exceptions.EntityNotFound;
+import orm.exceptions.IDNotFound;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.util.*;
@@ -34,8 +37,12 @@ public class ORM {
 
         // quitting if passed object isn't an entity
         if (!entityHelper.isEntity(object)) {
-            System.err.println("Object of the class <" + clazz.getSimpleName() + "> cannot be persisted because it isn't an Entity.");
-            return;
+            try {
+                throw new EntityNotFound("Object of the class <" + clazz.getSimpleName() + "> cannot be persisted because it isn't an Entity.");
+            } catch (EntityNotFound entityNotFound) {
+                entityNotFound.printStackTrace();
+                return;
+            }
         }
 
         // represents name of the table to which the entity is mapped
@@ -104,15 +111,23 @@ public class ORM {
         Class<?> clazz = object.getClass();
 
         if (!entityHelper.isEntity(object)) {
-            System.err.println("Object of the class <" + clazz.getSimpleName() + "> cannot be deleted because it isn't an Entity.");
-            return;
+            try {
+                throw new EntityNotFound("Object of the class <" + clazz.getSimpleName() + "> cannot be deleted because it isn't an Entity.");
+            } catch (EntityNotFound entityNotFound) {
+                entityNotFound.printStackTrace();
+                return;
+            }
         }
 
         Field idField = entityHelper.findIdField(clazz);
 
         if (idField == null){
-            System.err.println("Object of the class <" + clazz.getSimpleName() + "> cannot be deleted because it doesn't have ID field.");
-            return;
+            try {
+                throw new IDNotFound("Object of the class <" + clazz.getSimpleName() + "> cannot be deleted because it doesn't have ID field.");
+            } catch (IDNotFound idNotFound) {
+                idNotFound.printStackTrace();
+                return;
+            }
         }
 
         Object idFieldValue = null;

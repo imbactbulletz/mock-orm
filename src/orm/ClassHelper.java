@@ -1,6 +1,7 @@
 package orm;
 
 import orm.annotations.MappedSuperclass;
+import orm.exceptions.NoMappedFields;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
@@ -46,8 +47,12 @@ public class ClassHelper {
 
                     // if MappedSuperclass has no mapped fields then we're quitting
                     if (!hasMappedField) {
-                        System.err.println("MappedSuperclass has no mapped fields.");
-                        break;
+                        try {
+                            throw new NoMappedFields("MappedSuperclass has no mapped fields.");
+                        } catch (NoMappedFields noMappedFields) {
+                            noMappedFields.printStackTrace();
+                            break;
+                        }
                     }
 
                     // adding superClass to the list of superclasses (parent superclasses
