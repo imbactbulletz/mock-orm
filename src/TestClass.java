@@ -25,8 +25,8 @@ public class TestClass {
 
 
         //orm.update(student);
-        //orm.persist(student);
+        orm.persist(student);
 
-        orm.delete(student);
+//        orm.delete(student);
     }
 }

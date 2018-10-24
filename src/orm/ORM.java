@@ -45,6 +45,18 @@ public class ORM {
             }
         }
 
+        // trying to find field annotated with ID (entities without an ID annotation cannot be mapped)
+        Field idField = entityHelper.findIdField(clazz);
+
+        if(idField == null){
+            try {
+                throw new IDNotFound("Couldn't find the primary column field.");
+            } catch (IDNotFound idNotFound) {
+                idNotFound.printStackTrace();
+                return;
+            }
+        }
+
         // represents name of the table to which the entity is mapped
         String tableName = entityHelper.findTableName(clazz);
 
