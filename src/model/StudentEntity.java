@@ -4,7 +4,7 @@ import orm.annotations.Column;
 import orm.annotations.Entity;
 
 @Entity
-public class EntityStudent extends EntityBasic {
+public class StudentEntity extends BasicEntity {
 
     @Column(name="FIRST_NAME")
     private String firstName;
@@ -17,7 +17,7 @@ public class EntityStudent extends EntityBasic {
     private int noOfPassedExams;
 
 
-    public EntityStudent(){
+    public StudentEntity(){
         super();
     }
 

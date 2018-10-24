@@ -1,9 +1,6 @@
-import model.EntityStudent;
+import model.CartEntity;
+import model.ItemEntity;
 import orm.ORM;
-
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Field;
-import java.util.ArrayList;
 
 
 public class TestClass {
@@ -17,16 +14,26 @@ public class TestClass {
 
         ORM orm = new ORM();
 
-        EntityStudent student = new EntityStudent();
-
-        student.setFirstName("Stefan");
-        student.setLastName("Cvetic");
-        student.setNoOfPassedExams(23);
-
-
-        //orm.update(student);
-        orm.persist(student);
-
+//        StudentEntity student = new StudentEntity();
+//
+//        student.setFirstName("Stefan");
+//        student.setLastName("Cvetic");
+//        student.setNoOfPassedExams(23);
+//
+//
+//        orm.update(student);
+//        orm.persist(student);
 //        orm.delete(student);
+
+        CartEntity cart = new CartEntity();
+
+        ItemEntity item = new ItemEntity();
+
+        // exception, items je null u cart-u, resiti ili preko dependency injection ili rucno inicijalizovati
+        //todo implement Dependency Injection
+        cart.getItems().add(item);
+
+        orm.persist(cart);
+
     }
 }

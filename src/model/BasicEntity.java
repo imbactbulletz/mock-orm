@@ -6,7 +6,7 @@ import orm.annotations.ID;
 import orm.annotations.MappedSuperclass;
 
 @MappedSuperclass
-public class EntityBasic {
+public class BasicEntity {
 
     @ID
     @GeneratedValue
@@ -24,7 +24,7 @@ public class EntityBasic {
         if(this.getClass() != obj.getClass())
             return false;
 
-        EntityBasic other = (EntityBasic)obj;
+        BasicEntity other = (BasicEntity)obj;
 
         if(id != other.id)
             return false;
