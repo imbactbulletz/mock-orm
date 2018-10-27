@@ -1,5 +1,5 @@
-import model.CartEntity;
-import model.ItemEntity;
+import model.PostEntity;
+import model.CommentEntity;
 import orm.ORM;
 
 
@@ -25,14 +25,14 @@ public class TestClass {
 //        orm.persist(student);
 //        orm.delete(student);
 
-        CartEntity cart = new CartEntity();
+        PostEntity post = new PostEntity();
 
-        ItemEntity item = new ItemEntity();
+        CommentEntity comment = new CommentEntity();
 
-        // exception, items je null u cart-u, resiti ili preko dependency injection ili rucno inicijalizovati
-        cart.getItems().add(item);
+        // exception, items je null u post-u, resiti ili preko dependency injection ili rucno inicijalizovati
+        post.getComments().add(comment);
 
-        //orm.persist(cart);
+        orm.persist(post);
 
     }
 }

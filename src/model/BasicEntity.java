@@ -13,6 +13,10 @@ public class BasicEntity {
     @Column(name="ID")
     private int id;
 
+
+
+    // getters and setters
+
     @Override
     public boolean equals(Object obj) {
         if(this == obj)

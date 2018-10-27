@@ -17,6 +17,10 @@ public class StudentEntity extends BasicEntity {
     private int noOfPassedExams;
 
 
+
+    // getters and setters
+
+
     public StudentEntity(){
         super();
     }
