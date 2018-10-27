@@ -3,9 +3,11 @@ package orm;
 
 import orm.exceptions.EntityNotFound;
 import orm.exceptions.IDNotFound;
+import orm.exceptions.NoColumnsFound;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
+import java.sql.ResultSet;
 import java.util.*;
 
 /**
@@ -17,11 +19,13 @@ public class ORM {
     private QueryFormer queryFormer;
     private EntityHelper entityHelper;
     private ClassHelper classHelper;
+    private DatabaseConnector databaseConnector;
 
     public ORM(){
         queryFormer = new QueryFormer();
         entityHelper = new EntityHelper();
         classHelper = new ClassHelper();
+        databaseConnector = new DatabaseConnector();
     }
 
     /**
@@ -73,6 +77,16 @@ public class ORM {
         // getting column names and values as a map
         Map<String, Object> columnNamesAndValues = entityHelper.getColumnNamesAndValuesForClasses(allClasses, object);
 
+
+        if(columnNamesAndValues.keySet().size() == 0){
+            try {
+                throw new NoColumnsFound("There must be at least one column not being a GeneratedValue.");
+            } catch (NoColumnsFound noColumnsFound) {
+                noColumnsFound.printStackTrace();
+                return;
+            }
+        }
+
         // forming a query out of the map
         String query = queryFormer.formInsertQuery(tableName, columnNamesAndValues);
 
@@ -88,7 +102,8 @@ public class ORM {
         }
 
 
-        System.out.println(query);
+        List<Object> results= databaseConnector.executeQuery(clazz, query);
+
     }
 
     /**
