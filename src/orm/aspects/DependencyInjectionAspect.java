@@ -1,6 +1,7 @@
 package orm.aspects;
 
 import org.aspectj.lang.JoinPoint;
+import org.aspectj.lang.annotation.After;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.aspectj.lang.annotation.Pointcut;
@@ -17,20 +18,26 @@ import java.lang.reflect.Type;
 public class DependencyInjectionAspect {
 
 
-    @Pointcut("@annotation(orm.annotations.OneToMany)")
-    public void atOneToMany(){}
+    @Pointcut("@annotation(orm.annotations.Entity)")
+    public void atEntity(){}
 
-    @Pointcut("@annotation(orm.annotations.ManyToOne)")
-    public void atManyToOne(){}
+    @Pointcut("execution(* *(..))")
+    public void atExecution(){
+    }
 
-
-    @Before("atOneToMany() || atManyToOne()")
-    public void initializeAnnotatedFields(JoinPoint pointcut){
-
+    @Before("execution(* (@orm.annotations.Entity *).*(..))")
+    public void initializeFields(JoinPoint pointcut){
        // object that the pointcut is called upon
        Object targetObject = pointcut.getTarget();
        // class of the target object
-       Class targetObjectClass = targetObject.getClass();
+       Class targetObjectClass;
+
+       try {
+           targetObjectClass = targetObject.getClass();
+       }
+       catch(NullPointerException npe){
+           return;
+       }
        // field of target object's class
        Field[] targetClassFields = targetObjectClass.getDeclaredFields();
 
@@ -39,8 +46,9 @@ public class DependencyInjectionAspect {
        for(Field field: targetClassFields){
            Annotation[] annotations = field.getDeclaredAnnotations();
 
+
            for(Annotation annotation : annotations){
-               if(annotation instanceof OneToMany || annotation instanceof ManyToOne){
+
                    field.setAccessible(true);
 
                    try {
@@ -88,7 +96,7 @@ public class DependencyInjectionAspect {
                        e.printStackTrace();
                    }
                }
-           }
+
 
        }
     }
