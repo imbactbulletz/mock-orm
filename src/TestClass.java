@@ -30,10 +30,9 @@ public class TestClass {
         ItemEntity item = new ItemEntity();
 
         // exception, items je null u cart-u, resiti ili preko dependency injection ili rucno inicijalizovati
-        //todo implement Dependency Injection
         cart.getItems().add(item);
 
-        orm.persist(cart);
+        //orm.persist(cart);
 
     }
 }

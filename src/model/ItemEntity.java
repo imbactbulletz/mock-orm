@@ -12,7 +12,6 @@ public class ItemEntity extends BasicEntity {
     @JoinColumn(name = "ID")
     private CartEntity cart;
 
-
     public CartEntity getCart() {
         return cart;
     }
