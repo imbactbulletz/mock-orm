@@ -286,4 +286,84 @@ public class EntityHelper {
         return generatedValuesColumnNames;
     }
 
+    public boolean hasOneToMany(Class clazz){
+
+        Field[] classFields = clazz.getDeclaredFields();
+
+        for(Field classField : classFields){
+            Annotation[] fieldAnnotations = classField.getDeclaredAnnotations();
+
+            for(Annotation fieldAnnotation: fieldAnnotations){
+                if(fieldAnnotation instanceof OneToMany){
+                    return true;
+                }
+            }
+        }
+
+
+        return false;
+    }
+
+    public Field getOneToManyField(Class clazz){
+        Field[] classFields = clazz.getDeclaredFields();
+
+        for(Field classField : classFields){
+            Annotation[] fieldAnnotations = classField.getDeclaredAnnotations();
+
+            for(Annotation fieldAnnotation : fieldAnnotations){
+                if(fieldAnnotation instanceof OneToMany){
+                    return classField;
+                }
+            }
+        }
+
+        return null;
+    }
+
+
+    public String getManyToOneColumnName(Class clazz){
+        String columnName = null;
+
+        Field[] classFields = clazz.getDeclaredFields();
+
+        for(Field classField: classFields){
+            Annotation[] fieldAnnotations = classField.getAnnotations();
+            boolean hasManyToOne = false;
+
+            for(Annotation fieldAnnotation : fieldAnnotations){
+                if(fieldAnnotation instanceof ManyToOne){
+                    hasManyToOne = true;
+                }
+
+                if(fieldAnnotation instanceof JoinColumn){
+                    if(hasManyToOne){
+                        JoinColumn joinColumn = (JoinColumn) fieldAnnotation;
+                        columnName = joinColumn.name();
+
+                        return columnName;
+                    }
+                }
+            }
+        }
+
+        return columnName;
+    }
+
+
+    public Field getManyToOneField(Class clazz){
+        Field[] classFields = clazz.getDeclaredFields();
+
+        for(Field classField : classFields){
+            Annotation[] fieldAnnotations = classField.getDeclaredAnnotations();
+
+            for(Annotation fieldAnnotation : fieldAnnotations){
+                if(fieldAnnotation instanceof ManyToOne){
+                    return classField;
+
+                }
+            }
+        }
+
+        return null;
+    }
 }

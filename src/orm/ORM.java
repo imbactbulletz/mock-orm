@@ -7,6 +7,8 @@ import orm.exceptions.NoColumnsFound;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.sql.ResultSet;
 import java.util.*;
 
@@ -78,6 +80,7 @@ public class ORM {
         Map<String, Object> columnNamesAndValues = entityHelper.getColumnNamesAndValuesForClasses(allClasses, object);
 
 
+        // throws an exception if there are no columns other than GeneratedValue
         if(columnNamesAndValues.keySet().size() == 0){
             try {
                 throw new NoColumnsFound("There must be at least one column not being a GeneratedValue.");
@@ -104,6 +107,104 @@ public class ORM {
 
         List<Object> results= databaseConnector.executeQuery(clazz, query);
 
+
+        // check for oneToMany
+        Field oneToManyField = entityHelper.getOneToManyField(clazz);
+
+        if(oneToManyField != null) {
+
+            // getting the generic type of oneToManyField - typically a List
+            Type genericType = oneToManyField.getGenericType();
+            List objectList = null;
+            Class listClassType = null;
+
+            // getting the objects contained in the list
+            try {
+                oneToManyField.setAccessible(true);
+                // getting
+                objectList = (List)oneToManyField.get(object);
+
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            }
+
+
+            // if generic type is parameterized
+            if(genericType instanceof ParameterizedType) {
+
+                ParameterizedType parameterizedType = (ParameterizedType) genericType;
+                // Getting the parameterized type T type of List<T>
+                Type type = parameterizedType.getActualTypeArguments()[0];
+
+                try {
+                    listClassType = Class.forName(type.getTypeName());
+                } catch (ClassNotFoundException e) {
+                    e.printStackTrace();
+                }
+
+
+            }
+
+
+            // setting manyToOne field to reference the object
+            Field manyToOneField = entityHelper.getManyToOneField(listClassType);
+
+            for(Object o : objectList){
+                manyToOneField.setAccessible(true);
+                try {
+                    manyToOneField.set(o, object);
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            String joinColumnName = entityHelper.getManyToOneColumnName(listClassType);
+
+
+
+
+            Field primaryField = entityHelper.findIdField(clazz);
+
+            primaryField.setAccessible(true);
+            Object primaryFieldValue = null;
+
+            try {
+                primaryFieldValue = primaryField.get(object);
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            }
+
+            tableName = entityHelper.findTableName(listClassType);
+
+            superClasses = classHelper.getSuperClasses(listClassType);
+
+            allClasses = new ArrayList<>();
+
+            allClasses.addAll(superClasses);
+            allClasses.add(listClassType);
+
+
+            for(Object o : objectList){
+                columnNamesAndValues = entityHelper.getColumnNamesAndValuesForClasses(allClasses, o);
+                columnNamesAndValues.put(joinColumnName, primaryFieldValue);
+
+
+                // throws an exception if there are no columns other than GeneratedValue
+                if(columnNamesAndValues.keySet().size() == 0){
+                    try {
+                        throw new NoColumnsFound("There must be at least one column not being a GeneratedValue.");
+                    } catch (NoColumnsFound noColumnsFound) {
+                        noColumnsFound.printStackTrace();
+                        return;
+                    }
+                }
+
+                query = queryFormer.formInsertQuery(tableName, columnNamesAndValues);
+
+                databaseConnector.executeQuery(listClassType, query);
+            }
+
+        }
     }
 
     /**

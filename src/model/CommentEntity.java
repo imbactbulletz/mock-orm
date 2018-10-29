@@ -10,7 +10,7 @@ import orm.annotations.ManyToOne;
 public class CommentEntity extends BasicEntity {
 
     @ManyToOne
-    @JoinColumn(name = "ID")
+    @JoinColumn(name = "FK_POST_ID")
     private PostEntity post;
 
     @Column(name="content")

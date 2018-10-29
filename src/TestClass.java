@@ -27,10 +27,14 @@ public class TestClass {
 
         PostEntity post = new PostEntity();
 
-        CommentEntity comment = new CommentEntity();
+        CommentEntity comment1 = new CommentEntity();
+        comment1.setContent("Comment 1");
 
-        // exception, items je null u post-u, resiti ili preko dependency injection ili rucno inicijalizovati
-        post.getComments().add(comment);
+        CommentEntity comment2 = new CommentEntity();
+        comment2.setContent("Comment 2 ");
+
+        post.getComments().add(comment1);
+        post.getComments().add(comment2);
 
         orm.persist(post);
 
